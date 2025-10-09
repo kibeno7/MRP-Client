@@ -2,9 +2,7 @@
 
 import { userAtom } from '@/atoms/user';
 import { User } from '@/types/User';
-import axios from "axios";
-import { useEffect } from 'react';
-import { useRecoilState } from 'recoil';
+import { useRecoilValue } from 'recoil';
 
 const getGreeting = () => {
     const hour = new Date().getHours();
@@ -12,29 +10,7 @@ const getGreeting = () => {
 };
 
 export default function Page() {
-    const [user, setUser] = useRecoilState<User>(userAtom);
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/loginStatus`, {
-                    withCredentials: true,
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                })
-                if (response.data.status === "success") {
-                    setUser(response.data.data.user);
-                }
-                else {
-                    console.error("Failed to fetch user data");
-                }
-            }
-            catch (error) {
-                console.error("Error fetching user data:", error);
-            }
-        }
-        fetchUser();
-    }, [setUser]);
+    const user = useRecoilValue<User | null>(userAtom);
 
     return (
         <div className="p-4 flex flex-col justify-center items-center">

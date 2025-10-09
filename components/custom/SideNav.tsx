@@ -23,9 +23,9 @@ const variants = {
 
 export default function SideNav() {
     const [isOpen, setIsOpen] = useState(false);
-    const user = useRecoilValue<UserType>(userAtom);
+    const user = useRecoilValue<UserType | null>(userAtom);
 
-    const filteredLinks = links.filter(link => !link.roles || link.roles.includes(user.role));
+    const filteredLinks = user ? links.filter(link => !link.roles || link.roles.includes(user.role)) : [];
 
     return (
         <>
