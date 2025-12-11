@@ -9,7 +9,9 @@ import { IoLogoLinkedin } from "react-icons/io";
 const teamMembers = [
     { id: 1, name: "Anshuman Mahato", role: "Full Stack Developer", github: "https://github.com/AnshumanMahato", linkedin: "https://www.linkedin.com/in/anshuman-mahato/", imgSource: "/images/team/anshuman-mahato.jpeg" },
     { id: 2, name: "Vinay Kumar", role: "Full Stack Developer", github: "https://github.com/vkumar8192449", linkedin: "https://www.linkedin.com/in/vk8192449/", imgSource: "/images/team/vinay-kumar.jpeg" },
-    { id: 3, name: "Subrajeet Maharana", role: "Full Stack Developer", github: "https://github.com/subrajeet-maharana", linkedin: "https://www.linkedin.com/in/subrajeet-maharana/", imgSource: "/images/team/subrajeet-maharana.jpeg" }
+    { id: 3, name: "Subrajeet Maharana", role: "Full Stack Developer", github: "https://github.com/subrajeet-maharana", linkedin: "https://www.linkedin.com/in/subrajeet-maharana/", imgSource: "/images/team/subrajeet-maharana.jpeg" },
+    { id: 4, name: "Priyanshu Kumar", role: "Full Stack Developer", github: "https://github.com/Priyanshu-kr-gupta", linkedin: "https://www.linkedin.com/in/priyanshu-kumar-143995246/", imgSource: "/images/team/priyanshu.jpg" },
+    { id: 5, name: "Apurba Sundar Nayak", role: "Full Stack Developer", github: "https://github.com/kibeno7", linkedin: "https://www.linkedin.com/in/apurba007/", imgSource: "/images/team/apurba.jpg" }
 ];
 
 const TeamMembers: React.FC = () => {
