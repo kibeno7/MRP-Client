@@ -17,7 +17,8 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "MRP | MCA Records on Placements",
-  description: "Triumph over your interview by reading the experiences of others.",
+  description:
+    "Triumph over your interview by reading the experiences of others.",
 };
 
 export default function RootLayout({
@@ -27,7 +28,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <head>
+        {/* ADD THIS LINK TAG */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Georama:wght@700&family=Arvo:wght@700&family=Oswald:wght@400&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <RecoilContextProvider>
           <Toaster position="bottom-right" />
           {children}

@@ -13,6 +13,7 @@ import {
   X,
   LayoutDashboard,
   Home,
+  Image as ImageIcon, 
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -22,7 +23,6 @@ import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const links = [
-  // Added Home link pointing to Landing Page
   { name: "Home", href: "/", icon: Home },
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "All Interviews", href: "/dashboard/allInterviews", icon: Users },
@@ -33,6 +33,12 @@ const links = [
     href: "/dashboard/verificationQueue",
     icon: CheckCircle,
     roles: ["admin", "verifier"],
+  },
+  {
+    name: "Generate Poster",
+    href: "/dashboard/generatePoster",
+    icon: ImageIcon,
+    roles: ["admin", "verifier"], 
   },
 ];
 
@@ -66,7 +72,6 @@ export default function SideNav() {
 
   return (
     <>
-      {/* --- Floating Toggle Button --- */}
       <Button
         variant="outline"
         size="icon"
@@ -77,11 +82,9 @@ export default function SideNav() {
         <span className="sr-only">Open Menu</span>
       </Button>
 
-      {/* --- AnimatePresence for smooth entry/exit --- */}
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* 1. Backdrop Overlay */}
             <motion.div
               initial="closed"
               animate="open"
@@ -92,7 +95,6 @@ export default function SideNav() {
               onClick={() => setIsOpen(false)}
             />
 
-            {/* 2. Sidebar Drawer */}
             <motion.div
               initial="closed"
               animate="open"
@@ -101,7 +103,6 @@ export default function SideNav() {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="fixed top-0 left-0 z-50 h-full w-72 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col"
             >
-              {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-zinc-100 dark:border-zinc-800">
                 <Link
                   href="/dashboard"
@@ -120,11 +121,9 @@ export default function SideNav() {
                 </Button>
               </div>
 
-              {/* Navigation Links */}
               <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
                 {filteredLinks.map((link) => {
                   const LinkIcon = link.icon;
-                  // Check if this link is active
                   const isActive = pathname === link.href;
 
                   return (
@@ -152,7 +151,6 @@ export default function SideNav() {
                 })}
               </div>
 
-              {/* Footer: User Profile & Logout */}
               <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
                 <div className="flex items-center gap-3 mb-4 px-2">
                   <Avatar className="h-9 w-9 border border-zinc-200 dark:border-zinc-700">
