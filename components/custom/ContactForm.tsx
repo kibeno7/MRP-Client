@@ -180,7 +180,7 @@ const ContactForm: React.FC = () => {
                     animate={{ opacity: 1, height: "auto" }}
                     className="flex items-center justify-center p-3 text-sm font-medium text-green-600 bg-green-50 dark:bg-green-900/10 dark:text-green-400 rounded-md"
                   >
-                    Thanks! We've received your message.
+                    Thanks! We&apos;ve received your message.
                   </motion.div>
                 )}
               </form>

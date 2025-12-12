@@ -4,16 +4,15 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { useRecoilValue, useSetRecoilState } from "recoil";
-import { Building2, UserCircle2, ArrowRight, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation"; // 1. Import useRouter
+import { Building2, UserCircle2, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation"; 
 
 import { userAtom } from "@/atoms/user";
 import { viewInterviewPopup } from "@/atoms/viewInterviewPopup";
 import ViewInterviewDialogPopUp from "./ViewInterviewDialogPopUp";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-// --- Types ---
+
 interface Interview {
   _id: string;
   company: string;
@@ -24,7 +23,7 @@ interface Interview {
   };
 }
 
-// --- Helpers ---
+
 const getGreeting = () => {
   const hour = new Date().getHours();
   return hour < 12
@@ -43,7 +42,7 @@ const getDateString = () => {
   });
 };
 
-// --- Animations ---
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -65,7 +64,7 @@ export default function Dashboard() {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch recent interviews
+  
   useEffect(() => {
     const fetchInterviews = async () => {
       try {
@@ -74,7 +73,7 @@ export default function Dashboard() {
           {
             params: {
               page: 1,
-              limit: 5, // Fetch only the 5 most recent
+              limit: 5, 
             },
             withCredentials: true,
           }

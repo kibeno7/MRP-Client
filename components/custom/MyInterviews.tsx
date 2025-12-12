@@ -295,7 +295,6 @@ const MyInterviews = () => {
                             onClick={() =>
                               setInterviewId({
                                 interviewId: item._id,
-                                // @ts-ignore
                                 isPlaced: item.status === "placed",
                                 status: item.verification.status,
                               })
@@ -315,8 +314,8 @@ const MyInterviews = () => {
                           </div>
                           <p className="font-medium">No interviews found</p>
                           <p className="text-sm mt-1">
-                            You haven't submitted any experiences yet, or your
-                            filter matches nothing.
+                            You haven&apos;t submitted any experiences yet, or
+                            your filter matches nothing.
                           </p>
                         </div>
                       </td>

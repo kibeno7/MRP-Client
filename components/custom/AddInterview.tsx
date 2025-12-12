@@ -27,7 +27,6 @@ import {
   Loader2,
   Plus,
   Trash2,
-  CheckCircle2,
   Briefcase,
   Layers,
   Award,
