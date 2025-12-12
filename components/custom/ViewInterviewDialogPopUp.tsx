@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -23,7 +24,8 @@ interface ViewInterviewPopup {
 }
 
 export default function ViewInterviewDialogPopUp() {
-  const [interviewId, setInterviewId] = useRecoilState<ViewInterviewPopup>(viewInterviewPopup);
+  const [interviewId, setInterviewId] =
+    useRecoilState<ViewInterviewPopup>(viewInterviewPopup);
   const { isPlaced, status } = useRecoilValue(viewInterviewPopup);
 
   useEffect(() => {
@@ -39,7 +41,10 @@ export default function ViewInterviewDialogPopUp() {
           View
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl rounded-sm">
+      <DialogContent
+        aria-describedby={undefined}
+        className="w-full sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl rounded-sm"
+      >
         <DialogHeader>
           <DialogTitle>Interview Details</DialogTitle>
         </DialogHeader>

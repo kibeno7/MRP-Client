@@ -96,7 +96,7 @@ export default function Login() {
           />
           <div
             className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-gray-400"
-            style={{ top: '50%', transform: 'translateY(-50%)' }}
+            style={{ top: "50%", transform: "translateY(-50%)" }}
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}

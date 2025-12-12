@@ -2,26 +2,23 @@
 
 import { interviewState } from "@/atoms/interview";
 import { viewInterviewPopup } from "@/atoms/viewInterviewPopup";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { errornotify } from "@/lib/notifications";
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { useRecoilState, useSetRecoilState } from "recoil";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { errornotify } from "@/lib/notifications";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { useRecoilState, useSetRecoilState } from "recoil";
+import { Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import ViewInterviewDialogPopUp from "./ViewInterviewDialogPopUp";
-import { Button } from "../ui/button";
+import { motion } from "framer-motion";
 
 const placeOptions = ["All", "Placed", "On-Going", "Not-Placed"];
 
@@ -44,15 +41,20 @@ const AllInterviews = () => {
     useRecoilState<Interview[]>(interviewState);
   const setInterviewId =
     useSetRecoilState<ViewInterviewPopup>(viewInterviewPopup);
+
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
 
-  //pagination
+  // Pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const limit = 20;
+
+  // Fetch Data (Only pagination, no search params sent to backend)
   useEffect(() => {
     const fetchInterviews = async () => {
+      setIsLoading(true);
       try {
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/api/v1/interview`,
@@ -73,14 +75,16 @@ const AllInterviews = () => {
         }
       } catch (error) {
         console.log("Failed to fetch all interviews", error);
+        errornotify("Something went wrong while fetching data");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchInterviews();
   }, [page, setInterviews]);
 
-  console.log(interviews);
-
+  // Client-Side Filtering
   const filteredData = interviews.filter((item) => {
     const matchesFilter =
       item.interviewee.reg_no.toLowerCase().includes(filter.toLowerCase()) ||
@@ -95,92 +99,201 @@ const AllInterviews = () => {
   });
 
   return (
-    <div>
-      <Card className="max-w-7xl mx-auto">
-        <CardHeader>
-          <h2 className="text-xl font-bold">All Interviews</h2>
-          <div className="flex flex-col md:flex-row justify-between space-y-2 md:space-y-0 md:space-x-2 mt-4">
-            <Input
-              placeholder="Filter by name or reg no"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-            />
-            <div>
-              <Select
-                onValueChange={(value) => setStatusFilter(value.toLowerCase())}
-                defaultValue={statusFilter}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {placeOptions.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+    <div className="min-h-screen bg-zinc-50 dark:bg-black p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* --- Header --- */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
+              Interviews Archive
+            </h1>
+            <p className="text-zinc-500 dark:text-zinc-400">
+              Browse experiences shared by your seniors & batchmates.
+            </p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="w-full">
-            <div className="grid grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-2 p-2 font-semibold text-sm sm:text-base">
-              <div className="hidden md:block">Reg No</div>
-              <div>Name</div>
-              <div>Company</div>
-              <div className="hidden xl:block text-center">Status</div>
-              <div className="text-center">Actions</div>
-            </div>
-            {filteredData.map((item: Interview) => (
-              <div
-                key={item._id}
-                className="grid grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-2 p-2 border-t text-sm sm:text-base"
-              >
-                <div className="hidden md:block">
-                  {item.interviewee.reg_no.toUpperCase()}
-                </div>
-                <div>{item.interviewee.name}</div>
-                <div>{item.company}</div>
-                <div className="hidden xl:block text-center">
-                  {item.status === "placed"
-                    ? "Placed"
-                    : item.status === "on-going"
-                      ? "On-Going"
-                      : item.status === "not-placed"
-                        ? "Not-Placed"
-                        : "Unknown"}
-                </div>
-                <div className="text-center">
-                  <div
-                    onClick={() => setInterviewId({ interviewId: item._id })}
-                  >
-                    <ViewInterviewDialogPopUp />
-                  </div>
-                </div>
+        </div>
+
+        {/* --- Content Card --- */}
+        <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm bg-white dark:bg-zinc-950">
+          <CardHeader className="pb-4 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+              {/* Search */}
+              <div className="relative w-full md:w-96">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400" />
+                <Input
+                  placeholder="Search by Company, Name or Reg No..."
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  className="pl-9 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+                />
               </div>
-            ))}
+
+              {/* Status Filter */}
+              <div className="w-full md:w-48">
+                <Select
+                  onValueChange={(value) =>
+                    setStatusFilter(value.toLowerCase())
+                  }
+                  defaultValue={statusFilter}
+                >
+                  <SelectTrigger className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-3.5 w-3.5 text-zinc-500" />
+                      <SelectValue placeholder="Filter Status" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {placeOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-0">
+            <div className="w-full overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs text-zinc-500 uppercase bg-zinc-50/50 dark:bg-zinc-900/50 border-b border-zinc-100 dark:border-zinc-800">
+                  <tr>
+                    <th className="px-6 py-4 font-medium">Student Details</th>
+                    <th className="px-6 py-4 font-medium">Company</th>
+                    {/* HIDDEN ON MOBILE: 'hidden md:table-cell' */}
+                    <th className="hidden md:table-cell px-6 py-4 font-medium text-center">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 font-medium text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {isLoading ? (
+                    // Skeleton Loading
+                    [...Array(5)].map((_, i) => (
+                      <tr key={i} className="animate-pulse">
+                        <td className="px-6 py-4">
+                          <div className="h-10 w-32 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="h-6 w-24 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
+                        </td>
+                        {/* HIDDEN ON MOBILE */}
+                        <td className="hidden md:table-cell px-6 py-4">
+                          <div className="h-6 w-20 mx-auto bg-zinc-200 dark:bg-zinc-800 rounded"></div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="h-8 w-8 ml-auto bg-zinc-200 dark:bg-zinc-800 rounded"></div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : filteredData.length > 0 ? (
+                    filteredData.map((item: Interview, index) => (
+                      <motion.tr
+                        key={item._id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="bg-white dark:bg-zinc-950 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                              {item.interviewee.name}
+                            </span>
+                            <span className="text-xs text-zinc-500 font-mono">
+                              {item.interviewee.reg_no.toUpperCase()}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                              {item.company}
+                            </span>
+                          </div>
+                        </td>
+                        {/* HIDDEN ON MOBILE: 'hidden md:table-cell' */}
+                        <td className="hidden md:table-cell px-6 py-4 text-center">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                              item.status === "placed"
+                                ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30"
+                                : item.status === "on-going"
+                                ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30"
+                                : "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
+                            }`}
+                          >
+                            {item.status === "placed"
+                              ? "Placed"
+                              : item.status === "on-going"
+                              ? "Ongoing"
+                              : "Not Placed"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div
+                            className="inline-block cursor-pointer"
+                            onClick={() =>
+                              setInterviewId({ interviewId: item._id })
+                            }
+                          >
+                            <ViewInterviewDialogPopUp />
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-6 py-12 text-center text-zinc-500"
+                      >
+                        No interviews found matching your criteria.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+
+          {/* Pagination Footer */}
+          <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+            <div className="text-sm text-zinc-500">
+              Page{" "}
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                {page}
+              </span>{" "}
+              of {totalPages || 1}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                disabled={page === 1 || isLoading}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={
+                  page === totalPages || page >= totalPages || isLoading
+                }
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        </CardContent>
-        <CardFooter></CardFooter>
-      </Card>
-      <div className="flex justify-center items-center space-x-4 mt-4">
-        <Button
-          onClick={() => setPage((prev) => prev - 1)}
-          disabled={page === 1}
-          className="w-50 gap-2 position-absolute"
-        >
-          Prev
-        </Button>
-        <div>{page}</div>
-        <Button
-          onClick={() => setPage((prev) => prev + 1)}
-          disabled={page === totalPages}
-          className="w-50 gap-2 position-absolute"
-        >
-          Next
-        </Button>
+        </Card>
       </div>
     </div>
   );
