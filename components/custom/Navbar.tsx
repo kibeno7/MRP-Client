@@ -2,19 +2,18 @@
 
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X, User as UserIcon } from "lucide-react"; // Added UserIcon
+import { Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
-import { useRecoilValue } from "recoil"; // Import Recoil
-import { userAtom } from "@/atoms/user"; // Import your user atom
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Import Avatar components
+import { useRecoilValue } from "recoil";
+import { userAtom } from "@/atoms/user";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
-  const user = useRecoilValue(userAtom); // Get user state
+  const user = useRecoilValue(userAtom);
 
-  // Prevent scrolling when mobile menu is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -39,7 +38,6 @@ const Navbar: React.FC = () => {
     },
   };
 
-  // Helper to get initials from name
   const getInitials = (name: string) => {
     return name
       ?.split(" ")
