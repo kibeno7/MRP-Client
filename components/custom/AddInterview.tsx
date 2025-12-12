@@ -182,12 +182,17 @@ export default function InterviewForm() {
       } else {
         throw new Error(response.data.message || "Failed to add the interview");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Form submission error:", error);
-      const msg =
-        error.response?.data?.message ||
-        error.message ||
-        "An unexpected error occurred";
+      let msg = "An unexpected error occurred";
+
+      // Properly check the error type
+      if (axios.isAxiosError(error)) {
+        msg = error.response?.data?.message || error.message || msg;
+      } else if (error instanceof Error) {
+        msg = error.message;
+      }
+
       errornotify(msg);
     } finally {
       setSubmitLoading(false);
