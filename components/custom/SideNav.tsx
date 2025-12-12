@@ -172,9 +172,7 @@ export default function SideNav() {
                 </div>
 
                 <div className="w-full">
-                  <form className="w-full">
-                    <Logout />
-                  </form>
+                  <Logout />
                 </div>
               </div>
             </motion.div>
