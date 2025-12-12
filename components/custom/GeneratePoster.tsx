@@ -17,14 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Download,
-  Upload,
-  RefreshCw,
-  Wand2,
-  Image as ImageIcon,
-  X,
-} from "lucide-react";
+import { Download, Upload, RefreshCw, Image as ImageIcon } from "lucide-react";
 import { ImageCropper } from "@/components/custom/image-cropper";
 import { PosterCanvas } from "@/components/custom/poster-canvas";
 import { motion } from "framer-motion";

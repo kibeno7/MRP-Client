@@ -21,7 +21,6 @@ export function ImageCropper({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
-  
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [minZoom, setMinZoom] = useState(1);
@@ -30,10 +29,8 @@ export function ImageCropper({
   const [isDragging, setIsDragging] = useState(false);
   const lastPointerPosition = useRef<{ x: number; y: number } | null>(null);
 
-  
   const CANVAS_SIZE = 600;
   const CROP_RADIUS = 180;
-
 
   const syncCanvasSize = useCallback(() => {
     const canvas = canvasRef.current;
@@ -42,7 +39,6 @@ export function ImageCropper({
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
 
-    
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
   }, []);
@@ -53,26 +49,22 @@ export function ImageCropper({
       const canvas = canvasRef.current;
       if (!img || !canvas) return rawOffset;
 
-      const dpr = window.devicePixelRatio || 1;
-      const cw = canvas.width; 
+      //   const dpr = window.devicePixelRatio || 1;
+      const cw = canvas.width;
       const ch = canvas.height;
 
-      
       const scaledWidth = img.width * zoom;
       const scaledHeight = img.height * zoom;
 
-      
       const scale = Math.min(cw, ch) / CANVAS_SIZE;
       const circleRadius = CROP_RADIUS * scale;
 
-      
       const halfW = scaledWidth / 2;
       const halfH = scaledHeight / 2;
 
       const maxOffsetX = (halfW - circleRadius) / zoom;
       const maxOffsetY = (halfH - circleRadius) / zoom;
 
-      
       const clampedX =
         halfW > circleRadius
           ? Math.min(Math.max(rawOffset.x, -maxOffsetX), maxOffsetX)
@@ -101,7 +93,6 @@ export function ImageCropper({
 
     ctx.clearRect(0, 0, cw, ch);
 
-    
     ctx.save();
     ctx.translate(cw / 2, ch / 2);
     ctx.scale(zoom, zoom);
@@ -109,15 +100,12 @@ export function ImageCropper({
     ctx.drawImage(img, -img.width / 2, -img.height / 2);
     ctx.restore();
 
-    
     ctx.save();
     ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
     ctx.fillRect(0, 0, cw, ch);
 
-    
     ctx.globalCompositeOperation = "destination-out";
 
-   
     const scale = Math.min(cw, ch) / CANVAS_SIZE;
     const radius = CROP_RADIUS * scale;
 
@@ -134,7 +122,6 @@ export function ImageCropper({
     ctx.restore();
   }, [offset, zoom, CANVAS_SIZE, CROP_RADIUS]);
 
-  
   useEffect(() => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -158,7 +145,6 @@ export function ImageCropper({
       const minZoomH = (radius * 2) / img.height;
       const computedMinZoom = Math.max(minZoomW, minZoomH);
 
-      
       const startZoom = Math.max(computedMinZoom * 1.05, 1);
 
       setMinZoom(computedMinZoom);
@@ -171,7 +157,6 @@ export function ImageCropper({
     };
   }, [image, syncCanvasSize, CANVAS_SIZE, CROP_RADIUS]);
 
- 
   useEffect(() => {
     const handleResize = () => {
       syncCanvasSize();
@@ -185,7 +170,6 @@ export function ImageCropper({
     return () => window.removeEventListener("resize", handleResize);
   }, [syncCanvasSize, draw, zoom, offset]);
 
-  
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId);
     setIsDragging(true);
@@ -222,11 +206,10 @@ export function ImageCropper({
     lastPointerPosition.current = null;
   };
 
-  
   const handleZoomChange = (val: number[]) => {
     const newZoom = Math.min(Math.max(val[0], minZoom), maxZoom);
     setZoom(newZoom);
-    
+
     setOffset((prev) => clampOffset(prev));
   };
 
@@ -242,22 +225,18 @@ export function ImageCropper({
     const ctx = outputCanvas.getContext("2d");
     if (!ctx) return;
 
-    
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, outputSize, outputSize);
 
-    
     ctx.beginPath();
     ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, Math.PI * 2);
     ctx.clip();
 
-    
     const cw = previewCanvas.width;
     const ch = previewCanvas.height;
     const scale = Math.min(cw, ch) / CANVAS_SIZE;
     const radiusOnPreview = CROP_RADIUS * scale;
 
-    
     const ratio = outputSize / 2 / radiusOnPreview;
 
     ctx.save();
