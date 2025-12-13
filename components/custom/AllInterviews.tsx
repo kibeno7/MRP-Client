@@ -190,32 +190,38 @@ const AllInterviews = () => {
           </CardHeader>
 
           <CardContent className="p-0">
-            <div className="w-full overflow-x-auto">
-              <table className="w-full text-sm text-left">
+            <div className="w-full">
+              <table className="w-full text-sm text-left table-fixed">
                 <thead className="text-xs text-zinc-500 uppercase bg-zinc-50/50 dark:bg-zinc-900/50 border-b border-zinc-100 dark:border-zinc-800">
                   <tr>
-                    <th className="px-6 py-4 font-medium">Student Details</th>
-                    <th className="px-6 py-4 font-medium">Company</th>
+                    <th className="w-[40%] md:w-auto pl-4 md:px-6 py-4 font-medium truncate">
+                      Student Details
+                    </th>
+                    <th className="w-[35%] md:w-auto px-2 md:px-6 py-4 font-medium truncate">
+                      Company
+                    </th>
                     <th className="hidden md:table-cell px-6 py-4 font-medium text-center">
                       Status
                     </th>
-                    <th className="px-6 py-4 font-medium text-right">Action</th>
+                    <th className="w-[25%] md:w-auto pr-4 md:px-6 py-4 font-medium text-right">
+                      Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                   {isLoading ? (
                     [...Array(5)].map((_, i) => (
                       <tr key={i} className="animate-pulse">
-                        <td className="px-6 py-4">
-                          <div className="h-10 w-32 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
+                        <td className="pl-4 md:px-6 py-4">
+                          <div className="h-10 w-24 md:w-32 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="h-6 w-24 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
+                        <td className="px-2 md:px-6 py-4">
+                          <div className="h-6 w-16 md:w-24 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
                         </td>
                         <td className="hidden md:table-cell px-6 py-4">
                           <div className="h-6 w-20 mx-auto bg-zinc-200 dark:bg-zinc-800 rounded"></div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="pr-4 md:px-6 py-4">
                           <div className="h-8 w-8 ml-auto bg-zinc-200 dark:bg-zinc-800 rounded"></div>
                         </td>
                       </tr>
@@ -229,24 +235,29 @@ const AllInterviews = () => {
                         transition={{ delay: index * 0.05 }}
                         className="bg-white dark:bg-zinc-950 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
                       >
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        {/* Student Details Column */}
+                        <td className="pl-4 md:px-6 py-4 align-middle">
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-semibold text-zinc-900 dark:text-zinc-100 truncate text-sm">
                               {item.interviewee.name}
                             </span>
-                            <span className="text-xs text-zinc-500 font-mono">
+                            <span className="text-[10px] md:text-xs text-zinc-500 font-mono truncate">
                               {item.interviewee.reg_no.toUpperCase()}
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-zinc-700 dark:text-zinc-300">
+
+                        {/* Company Column */}
+                        <td className="px-2 md:px-6 py-4 align-middle">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="font-medium text-zinc-700 dark:text-zinc-300 truncate text-sm">
                               {item.company}
                             </span>
                           </div>
                         </td>
-                        <td className="hidden md:table-cell px-6 py-4 text-center">
+
+                        {/* Status Column (Desktop Only) */}
+                        <td className="hidden md:table-cell px-6 py-4 text-center align-middle">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                               item.status === "placed"
@@ -263,13 +274,15 @@ const AllInterviews = () => {
                               : "Not Placed"}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
+
+                        {/* Action Column */}
+                        <td className="pr-4 md:px-6 py-4 text-right align-middle">
+                          <div className="flex items-center justify-end gap-1 md:gap-2">
                             {/* Share Button */}
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                              className="h-8 w-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-white shrink-0"
                               onClick={() => copyShareLink(item._id)}
                               title="Copy Link"
                             >
@@ -278,7 +291,7 @@ const AllInterviews = () => {
 
                             {/* View Button */}
                             <div
-                              className="inline-block cursor-pointer"
+                              className="inline-block cursor-pointer shrink-0"
                               onClick={() =>
                                 setInterviewId({ interviewId: item._id })
                               }
