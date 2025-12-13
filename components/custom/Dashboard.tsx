@@ -4,14 +4,21 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { useRecoilValue, useSetRecoilState } from "recoil";
-import { Building2, UserCircle2, ArrowRight } from "lucide-react";
-import { useRouter } from "next/navigation"; 
+import {
+  Building2,
+  UserCircle2,
+  ArrowRight,
+  BookOpen,
+  Briefcase,
+  ArrowUpRight,
+  Share2, 
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { userAtom } from "@/atoms/user";
 import { viewInterviewPopup } from "@/atoms/viewInterviewPopup";
 import ViewInterviewDialogPopUp from "./ViewInterviewDialogPopUp";
 import { Button } from "@/components/ui/button";
-
 
 interface Interview {
   _id: string;
@@ -22,7 +29,6 @@ interface Interview {
     reg_no: string;
   };
 }
-
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -42,7 +48,6 @@ const getDateString = () => {
   });
 };
 
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -59,12 +64,20 @@ const itemVariants = {
 export default function Dashboard() {
   const user = useRecoilValue(userAtom);
   const setInterviewId = useSetRecoilState(viewInterviewPopup);
-  const router = useRouter(); // 2. Initialize Router
+  const router = useRouter();
 
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
 
-  
+  // 2. Add Copy Link Function
+  const copyShareLink = (id: string) => {
+    const link = `${window.location.origin}/dashboard/interview/${id}`;
+    navigator.clipboard.writeText(link);
+    import("@/lib/notifications").then((mod) =>
+      mod.successnotify("Shareable link copied!")
+    );
+  };
+
   useEffect(() => {
     const fetchInterviews = async () => {
       try {
@@ -73,7 +86,7 @@ export default function Dashboard() {
           {
             params: {
               page: 1,
-              limit: 5, 
+              limit: 5,
             },
             withCredentials: true,
           }
@@ -103,7 +116,7 @@ export default function Dashboard() {
         {/* --- Header Section --- */}
         <motion.div
           variants={itemVariants}
-          className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-6"
+          className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 pb-2"
         >
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
@@ -117,24 +130,73 @@ export default function Dashboard() {
             </h1>
           </div>
           <Button
-            onClick={() => router.push("/dashboard/addInterview")} // 3. Redirect to Add Interview
+            onClick={() => router.push("/dashboard/addInterview")}
             className="bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-black dark:hover:bg-zinc-200"
           >
             Share Your Experience
           </Button>
         </motion.div>
 
+        {/* --- Quick Access Highlights --- */}
+        <motion.div
+          variants={itemVariants}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
+          {/* Company Directory */}
+          <div
+            onClick={() => router.push("/dashboard/companies")}
+            className="group relative cursor-pointer bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all shadow-sm hover:shadow-md"
+          >
+            <div className="flex justify-between items-start">
+              <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-lg text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-300">
+                <Briefcase size={24} />
+              </div>
+              <ArrowUpRight className="text-zinc-300 group-hover:text-zinc-900 dark:text-zinc-700 dark:group-hover:text-zinc-200 transition-colors" />
+            </div>
+            <div className="mt-4">
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
+                Company Directory
+              </h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                Explore interview experiences organized by specific companies.
+              </p>
+            </div>
+          </div>
+
+          {/* Learning Resources */}
+          <div
+            onClick={() => router.push("/dashboard/resources")}
+            className="group relative cursor-pointer bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 hover:border-zinc-400 dark:hover:border-zinc-600 transition-all shadow-sm hover:shadow-md"
+          >
+            <div className="flex justify-between items-start">
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-300">
+                <BookOpen size={24} />
+              </div>
+              <ArrowUpRight className="text-zinc-300 group-hover:text-zinc-900 dark:text-zinc-700 dark:group-hover:text-zinc-200 transition-colors" />
+            </div>
+            <div className="mt-4">
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
+                Resource Library
+              </h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                Access a curated collection of questions and study links
+                previously asked.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
         {/* --- Recent Activity Feed --- */}
-        <motion.div variants={itemVariants} className="space-y-6">
+        <motion.div variants={itemVariants} className="space-y-6 pt-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
               Latest Experiences
             </h2>
             <button
-              onClick={() => router.push("/dashboard/allInterviews")} // 4. Redirect to All Interviews
+              onClick={() => router.push("/dashboard/allInterviews")}
               className="text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 flex items-center transition-colors"
             >
-              View All <ArrowRight className="ml-1 h-4 w-4" />
+              View Archive <ArrowRight className="ml-1 h-4 w-4" />
             </button>
           </div>
 
@@ -187,7 +249,6 @@ export default function Dashboard() {
                           <span className="text-zinc-300 dark:text-zinc-700">
                             •
                           </span>
-                          {/* 5. Uppercase Reg No */}
                           <span className="font-mono text-xs">
                             {item.interviewee.reg_no.toUpperCase()}
                           </span>
@@ -195,12 +256,27 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    {/* Right: Action */}
-                    <div
-                      className="flex-shrink-0 cursor-pointer"
-                      onClick={() => setInterviewId({ interviewId: item._id })}
-                    >
-                      <ViewInterviewDialogPopUp />
+                    {/* Right: Actions */}
+                    {/* 3. Updated Action Section */}
+                    <div className="flex items-center gap-2 self-end sm:self-center">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                        onClick={() => copyShareLink(item._id)}
+                        title="Copy Link"
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+
+                      <div
+                        className="cursor-pointer"
+                        onClick={() =>
+                          setInterviewId({ interviewId: item._id })
+                        }
+                      >
+                        <ViewInterviewDialogPopUp />
+                      </div>
                     </div>
                   </div>
                 </motion.div>

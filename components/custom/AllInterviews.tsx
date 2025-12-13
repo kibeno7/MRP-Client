@@ -3,6 +3,7 @@
 import { interviewState } from "@/atoms/interview";
 import { viewInterviewPopup } from "@/atoms/viewInterviewPopup";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import CompanyInsights from "@/components/custom/CompanyInsights";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,9 +17,16 @@ import { errornotify } from "@/lib/notifications";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Search,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  Share2,
+} from "lucide-react";
 import ViewInterviewDialogPopUp from "./ViewInterviewDialogPopUp";
 import { motion } from "framer-motion";
+import { useSearchParams } from "next/navigation";
 
 const placeOptions = ["All", "Placed", "On-Going", "Not-Placed"];
 
@@ -41,18 +49,48 @@ const AllInterviews = () => {
     useRecoilState<Interview[]>(interviewState);
   const setInterviewId =
     useSetRecoilState<ViewInterviewPopup>(viewInterviewPopup);
+  const searchParams = useSearchParams();
 
-  const [filter, setFilter] = useState("");
+  const initialSearch = searchParams.get("search") || "";
+
+  const [filter, setFilter] = useState(initialSearch);
+  const [debouncedFilter, setDebouncedFilter] = useState(initialSearch);
   const [statusFilter, setStatusFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
 
-  // Pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const limit = 20;
 
-  // Fetch Data (Only pagination, no search params sent to backend)
+  // Function to copy the shareable link
+  const copyShareLink = (id: string) => {
+    const link = `${window.location.origin}/dashboard/interview/${id}`;
+    navigator.clipboard.writeText(link);
+    import("@/lib/notifications").then((mod) =>
+      mod.successnotify("Shareable link copied!")
+    );
+  };
+
   useEffect(() => {
+    const search = searchParams.get("search");
+    if (search !== null && search !== filter) {
+      setFilter(search);
+      setDebouncedFilter(search);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedFilter(filter);
+      if (filter !== debouncedFilter) setPage(1);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [filter]);
+
+  useEffect(() => {
+    let isActive = true;
+
     const fetchInterviews = async () => {
       setIsLoading(true);
       try {
@@ -62,46 +100,40 @@ const AllInterviews = () => {
             params: {
               page,
               limit,
+              search: debouncedFilter,
+              status: statusFilter === "all" ? undefined : statusFilter,
             },
             withCredentials: true,
           }
         );
 
-        if (response.data.status === "success") {
-          setTotalPages(response.data.totalPages);
-          setInterviews(response.data.data.data || []);
-        } else {
-          errornotify("Failed to fetch all interviews");
+        if (isActive) {
+          if (response.data.status === "success") {
+            setTotalPages(response.data.totalPages);
+            setInterviews(response.data.data.data || []);
+          } else {
+            errornotify("Failed to fetch interviews");
+          }
         }
       } catch (error) {
-        console.log("Failed to fetch all interviews", error);
-        errornotify("Something went wrong while fetching data");
+        if (isActive) {
+          console.log("Failed to fetch interviews", error);
+        }
       } finally {
-        setIsLoading(false);
+        if (isActive) setIsLoading(false);
       }
     };
 
     fetchInterviews();
-  }, [page, setInterviews]);
 
-  // Client-Side Filtering
-  const filteredData = interviews.filter((item) => {
-    const matchesFilter =
-      item.interviewee.reg_no.toLowerCase().includes(filter.toLowerCase()) ||
-      item.interviewee.name.toLowerCase().includes(filter.toLowerCase()) ||
-      item.company.toLowerCase().includes(filter.toLowerCase());
-
-    const matchesStatus =
-      statusFilter === "all" ||
-      item.status.toLowerCase() === statusFilter.toLowerCase();
-
-    return matchesFilter && matchesStatus;
-  });
+    return () => {
+      isActive = false;
+    };
+  }, [page, debouncedFilter, statusFilter, setInterviews]);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* --- Header --- */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
@@ -113,11 +145,11 @@ const AllInterviews = () => {
           </div>
         </div>
 
-        {/* --- Content Card --- */}
+        {debouncedFilter && <CompanyInsights companyName={debouncedFilter} />}
+
         <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm bg-white dark:bg-zinc-950">
           <CardHeader className="pb-4 border-b border-zinc-100 dark:border-zinc-800">
             <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-              {/* Search */}
               <div className="relative w-full md:w-96">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400" />
                 <Input
@@ -128,12 +160,12 @@ const AllInterviews = () => {
                 />
               </div>
 
-              {/* Status Filter */}
               <div className="w-full md:w-48">
                 <Select
-                  onValueChange={(value) =>
-                    setStatusFilter(value.toLowerCase())
-                  }
+                  onValueChange={(value) => {
+                    setStatusFilter(value.toLowerCase());
+                    setPage(1);
+                  }}
                   defaultValue={statusFilter}
                 >
                   <SelectTrigger className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
@@ -144,7 +176,7 @@ const AllInterviews = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {placeOptions.map((option) => (
-                      <SelectItem key={option} value={option}>
+                      <SelectItem key={option} value={option.toLowerCase()}>
                         {option}
                       </SelectItem>
                     ))}
@@ -161,7 +193,6 @@ const AllInterviews = () => {
                   <tr>
                     <th className="px-6 py-4 font-medium">Student Details</th>
                     <th className="px-6 py-4 font-medium">Company</th>
-                    {/* HIDDEN ON MOBILE: 'hidden md:table-cell' */}
                     <th className="hidden md:table-cell px-6 py-4 font-medium text-center">
                       Status
                     </th>
@@ -170,7 +201,6 @@ const AllInterviews = () => {
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                   {isLoading ? (
-                    // Skeleton Loading
                     [...Array(5)].map((_, i) => (
                       <tr key={i} className="animate-pulse">
                         <td className="px-6 py-4">
@@ -179,7 +209,6 @@ const AllInterviews = () => {
                         <td className="px-6 py-4">
                           <div className="h-6 w-24 bg-zinc-200 dark:bg-zinc-800 rounded"></div>
                         </td>
-                        {/* HIDDEN ON MOBILE */}
                         <td className="hidden md:table-cell px-6 py-4">
                           <div className="h-6 w-20 mx-auto bg-zinc-200 dark:bg-zinc-800 rounded"></div>
                         </td>
@@ -188,8 +217,8 @@ const AllInterviews = () => {
                         </td>
                       </tr>
                     ))
-                  ) : filteredData.length > 0 ? (
-                    filteredData.map((item: Interview, index) => (
+                  ) : interviews.length > 0 ? (
+                    interviews.map((item, index) => (
                       <motion.tr
                         key={item._id}
                         initial={{ opacity: 0, y: 10 }}
@@ -214,7 +243,6 @@ const AllInterviews = () => {
                             </span>
                           </div>
                         </td>
-                        {/* HIDDEN ON MOBILE: 'hidden md:table-cell' */}
                         <td className="hidden md:table-cell px-6 py-4 text-center">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
@@ -233,13 +261,27 @@ const AllInterviews = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <div
-                            className="inline-block cursor-pointer"
-                            onClick={() =>
-                              setInterviewId({ interviewId: item._id })
-                            }
-                          >
-                            <ViewInterviewDialogPopUp />
+                          <div className="flex items-center justify-end gap-2">
+                            {/* Share Button */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                              onClick={() => copyShareLink(item._id)}
+                              title="Copy Link"
+                            >
+                              <Share2 className="h-4 w-4" />
+                            </Button>
+
+                            {/* View Button */}
+                            <div
+                              className="inline-block cursor-pointer"
+                              onClick={() =>
+                                setInterviewId({ interviewId: item._id })
+                              }
+                            >
+                              <ViewInterviewDialogPopUp />
+                            </div>
                           </div>
                         </td>
                       </motion.tr>
@@ -250,7 +292,7 @@ const AllInterviews = () => {
                         colSpan={4}
                         className="px-6 py-12 text-center text-zinc-500"
                       >
-                        No interviews found matching your criteria.
+                        No interviews found matching "{debouncedFilter}"
                       </td>
                     </tr>
                   )}
@@ -259,7 +301,6 @@ const AllInterviews = () => {
             </div>
           </CardContent>
 
-          {/* Pagination Footer */}
           <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
             <div className="text-sm text-zinc-500">
               Page{" "}

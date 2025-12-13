@@ -1,44 +1,67 @@
 "use client";
 
-import SideNav from "@/components/custom/SideNav";
 import { userAtom } from "@/atoms/user";
+import SideNav from "@/components/custom/SideNav";
 import { User } from "@/types/User";
 import axios from "axios";
-import { useEffect } from "react";
-import { useSetRecoilState } from "recoil";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRecoilState } from "recoil";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-    const setUser = useSetRecoilState<User | null>(userAtom);
+  const [user, setUser] = useRecoilState<User | null>(userAtom);
+  const router = useRouter();
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/loginStatus`, {
-                    withCredentials: true,
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                })
-                if (response.data.status === "success") {
-                    setUser(response.data.data.user);
-                }
-                else {
-                    console.error("Failed to fetch user data");
-                }
-            }
-            catch (error) {
-                console.error("Error fetching user data:", error);
-            }
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    const validateSession = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/loginStatus`,
+          {
+            withCredentials: true,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        if (response.data.status === "success") {
+          setUser(response.data.data.user);
+        } else {
+          throw new Error("Session invalid");
         }
-        fetchUser();
-    }, [setUser]);
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        setUser(null);
+        router.replace("/login");
+      } finally {
+        setIsChecking(false);
+      }
+    };
 
+    validateSession();
+  }, [setUser, router]);
+
+  if (isChecking) {
     return (
-        <div className="flex h-screen flex-col">
-            <div className="w-full flex-none lg:w-64 z-50">
-                <SideNav />
-            </div>
-            <div className="flex-grow p-6 lg:mt-4 mt-8 lg:overflow-y-auto lg:p-12">{children}</div>
-        </div>
+      <div className="flex h-screen w-full items-center justify-center bg-zinc-50 dark:bg-black">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
+      </div>
     );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-black">
+      <SideNav />
+
+      <div className="flex-grow p-6 pt-20 lg:p-12 lg:pt-20 animate-in fade-in duration-500">
+        {children}
+      </div>
+    </div>
+  );
 }

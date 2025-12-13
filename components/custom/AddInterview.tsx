@@ -8,6 +8,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,6 +31,8 @@ import {
   Briefcase,
   Layers,
   Award,
+  AlertTriangle,
+  Wand2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -90,6 +93,17 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 type Step = 1 | 2 | 3;
 
+// --- Helper for Character Count ---
+const CharCount = ({ current, max }: { current: number; max: number }) => (
+  <span
+    className={`text-xs ml-auto ${
+      current > max ? "text-red-500 font-bold" : "text-zinc-400"
+    }`}
+  >
+    {current}/{max}
+  </span>
+);
+
 // --- Main Component ---
 export default function InterviewForm() {
   const [currentStep, setCurrentStep] = useState<Step>(1);
@@ -100,6 +114,12 @@ export default function InterviewForm() {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitLoadingDraft, setSubmitLoadingDraft] = useState(false);
   const [submitLoadingSubmit, setSubmitLoadingSubmit] = useState(false);
+
+  // State to track duplicate links found: { "roundIndex-qIndex": { title, description, company } }
+  const [duplicateLinks, setDuplicateLinks] = useState<
+    Record<string, { title: string; description: string; company: string }>
+  >({});
+
   const router = useRouter();
 
   const form = useForm<FormSchemaType>({
@@ -151,7 +171,61 @@ export default function InterviewForm() {
     return () => subscription.unsubscribe();
   }, [form]);
 
-  // Submission Handler
+  // --- Duplicate Link Checker ---
+  const checkLinkDuplicate = async (
+    link: string,
+    roundIndex: number,
+    qIndex: number
+  ) => {
+    const key = `${roundIndex}-${qIndex}`;
+
+    // Clear previous warning if link changes/empties
+    if (!link || link.length < 10) {
+      const newDuplicates = { ...duplicateLinks };
+      delete newDuplicates[key];
+      setDuplicateLinks(newDuplicates);
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/interview/check-link`,
+        { link },
+        { withCredentials: true }
+      );
+
+      if (response.data.exists) {
+        setDuplicateLinks((prev) => ({
+          ...prev,
+          [key]: response.data.data,
+        }));
+      } else {
+        // Remove warning if not duplicate
+        const newDuplicates = { ...duplicateLinks };
+        delete newDuplicates[key];
+        setDuplicateLinks(newDuplicates);
+      }
+    } catch (error) {
+      console.error("Failed to check link", error);
+    }
+  };
+
+  // --- Auto-fill Handler ---
+  const handleAutoFill = (roundIndex: number, qIndex: number) => {
+    const data = duplicateLinks[`${roundIndex}-${qIndex}`];
+    if (data) {
+      form.setValue(
+        `rounds.${roundIndex}.questions.${qIndex}.title`,
+        data.title
+      );
+      form.setValue(
+        `rounds.${roundIndex}.questions.${qIndex}.description`,
+        data.description
+      );
+      successnotify("Details auto-filled from existing question!");
+    }
+  };
+
   const onSubmitFormHandler = async (
     data: FormSchemaType,
     buttonName: string
@@ -185,14 +259,11 @@ export default function InterviewForm() {
     } catch (error) {
       console.error("Form submission error:", error);
       let msg = "An unexpected error occurred";
-
-      // Properly check the error type
       if (axios.isAxiosError(error)) {
         msg = error.response?.data?.message || error.message || msg;
       } else if (error instanceof Error) {
         msg = error.message;
       }
-
       errornotify(msg);
     } finally {
       setSubmitLoading(false);
@@ -201,7 +272,6 @@ export default function InterviewForm() {
     }
   };
 
-  // Helper Functions
   const toggleRound = (index: number) => {
     setExpandedRounds((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
@@ -241,7 +311,6 @@ export default function InterviewForm() {
     return stepFields[step].some((field) => !!form.formState.errors[field]);
   };
 
-  // Steps Configuration
   const steps = [
     { id: 1, title: "Company", icon: Briefcase },
     { id: 2, title: "Experience", icon: Layers },
@@ -251,7 +320,6 @@ export default function InterviewForm() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
-        {/* --- Header & Stepper --- */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-6 text-center">
             Share Your Experience
@@ -290,7 +358,6 @@ export default function InterviewForm() {
           </div>
         </div>
 
-        {/* --- Form Container --- */}
         <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm p-6 md:p-8">
           <Form {...form}>
             <form className="space-y-8">
@@ -317,6 +384,16 @@ export default function InterviewForm() {
                       name="company"
                       render={({ field }) => (
                         <FormItem>
+                          <div className="flex justify-between items-center">
+                            <FormLabel className="text-base">
+                              Company Name{" "}
+                              <span className="text-red-500">*</span>
+                            </FormLabel>
+                            <CharCount
+                              current={field.value?.length || 0}
+                              max={35}
+                            />
+                          </div>
                           <FormControl>
                             <Input
                               placeholder="e.g. Google, Microsoft, Amazon"
@@ -374,7 +451,6 @@ export default function InterviewForm() {
                           key={round.id}
                           className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden"
                         >
-                          {/* Round Header */}
                           <div className="bg-zinc-50 dark:bg-zinc-900 p-4 flex justify-between items-center">
                             <h3 className="font-medium">
                               Round {roundIndex + 1}
@@ -407,7 +483,6 @@ export default function InterviewForm() {
                             </div>
                           </div>
 
-                          {/* Round Body */}
                           {expandedRounds.includes(roundIndex) && (
                             <div className="p-4 space-y-4">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -416,7 +491,18 @@ export default function InterviewForm() {
                                   name={`rounds.${roundIndex}.name`}
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Round Name</FormLabel>
+                                      <div className="flex justify-between">
+                                        <FormLabel>
+                                          Round Name{" "}
+                                          <span className="text-red-500">
+                                            *
+                                          </span>
+                                        </FormLabel>
+                                        <CharCount
+                                          current={field.value?.length || 0}
+                                          max={30}
+                                        />
+                                      </div>
                                       <FormControl>
                                         <Input
                                           placeholder="e.g. Coding Round 1"
@@ -432,7 +518,10 @@ export default function InterviewForm() {
                                   name={`rounds.${roundIndex}.type`}
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Type</FormLabel>
+                                      <FormLabel>
+                                        Type{" "}
+                                        <span className="text-red-500">*</span>
+                                      </FormLabel>
                                       <Select
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
@@ -465,7 +554,10 @@ export default function InterviewForm() {
                                   name={`rounds.${roundIndex}.date`}
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Date</FormLabel>
+                                      <FormLabel>
+                                        Date{" "}
+                                        <span className="text-red-500">*</span>
+                                      </FormLabel>
                                       <FormControl>
                                         <Input
                                           type="date"
@@ -494,7 +586,13 @@ export default function InterviewForm() {
                                 name={`rounds.${roundIndex}.note`}
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>Notes (Optional)</FormLabel>
+                                    <div className="flex justify-between">
+                                      <FormLabel>Notes (Optional)</FormLabel>
+                                      <CharCount
+                                        current={field.value?.length || 0}
+                                        max={512}
+                                      />
+                                    </div>
                                     <FormControl>
                                       <Textarea
                                         placeholder="Any specific details about the environment, difficulty, etc."
@@ -506,7 +604,6 @@ export default function InterviewForm() {
                                 )}
                               />
 
-                              {/* Questions Section */}
                               <div className="mt-6 pt-6 border-t border-zinc-100 dark:border-zinc-800">
                                 <div className="space-y-4">
                                   {(
@@ -575,9 +672,20 @@ export default function InterviewForm() {
                                             name={`rounds.${roundIndex}.questions.${qIndex}.title`}
                                             render={({ field }) => (
                                               <FormItem>
-                                                <FormLabel className="text-xs">
-                                                  Question Title
-                                                </FormLabel>
+                                                <div className="flex justify-between">
+                                                  <FormLabel className="text-xs">
+                                                    Question Title{" "}
+                                                    <span className="text-red-500">
+                                                      *
+                                                    </span>
+                                                  </FormLabel>
+                                                  <CharCount
+                                                    current={
+                                                      field.value?.length || 0
+                                                    }
+                                                    max={100}
+                                                  />
+                                                </div>
                                                 <FormControl>
                                                   <Input
                                                     placeholder="e.g. Reverse Linked List"
@@ -594,9 +702,20 @@ export default function InterviewForm() {
                                             name={`rounds.${roundIndex}.questions.${qIndex}.description`}
                                             render={({ field }) => (
                                               <FormItem>
-                                                <FormLabel className="text-xs">
-                                                  Description
-                                                </FormLabel>
+                                                <div className="flex justify-between">
+                                                  <FormLabel className="text-xs">
+                                                    Description{" "}
+                                                    <span className="text-red-500">
+                                                      *
+                                                    </span>
+                                                  </FormLabel>
+                                                  <CharCount
+                                                    current={
+                                                      field.value?.length || 0
+                                                    }
+                                                    max={300}
+                                                  />
+                                                </div>
                                                 <FormControl>
                                                   <Textarea
                                                     placeholder="Explain the problem statement..."
@@ -608,6 +727,8 @@ export default function InterviewForm() {
                                               </FormItem>
                                             )}
                                           />
+
+                                          {/* LINK FIELD WITH DUPLICATE CHECK */}
                                           <FormField
                                             control={form.control}
                                             name={`rounds.${roundIndex}.questions.${qIndex}.link`}
@@ -621,9 +742,79 @@ export default function InterviewForm() {
                                                     placeholder="https://..."
                                                     className="bg-white dark:bg-black"
                                                     {...field}
+                                                    onBlur={(e) => {
+                                                      field.onBlur();
+                                                      checkLinkDuplicate(
+                                                        e.target.value,
+                                                        roundIndex,
+                                                        qIndex
+                                                      );
+                                                    }}
                                                   />
                                                 </FormControl>
                                                 <FormMessage />
+
+                                                {/* WARNING ALERT & AUTO-FILL */}
+                                                {duplicateLinks[
+                                                  `${roundIndex}-${qIndex}`
+                                                ] && (
+                                                  <motion.div
+                                                    initial={{
+                                                      opacity: 0,
+                                                      y: -5,
+                                                    }}
+                                                    animate={{
+                                                      opacity: 1,
+                                                      y: 0,
+                                                    }}
+                                                    className="rounded-md bg-yellow-50 dark:bg-yellow-900/30 p-3 mt-2 border border-yellow-200 dark:border-yellow-800"
+                                                  >
+                                                    <div className="flex flex-col gap-2">
+                                                      <div className="flex items-start gap-2">
+                                                        <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0" />
+                                                        <div className="text-xs">
+                                                          <p className="font-semibold text-yellow-700 dark:text-yellow-300">
+                                                            Similar Resource
+                                                            Found
+                                                          </p>
+                                                          <p className="text-yellow-600 dark:text-yellow-400 mt-1">
+                                                            "
+                                                            {
+                                                              duplicateLinks[
+                                                                `${roundIndex}-${qIndex}`
+                                                              ].title
+                                                            }
+                                                            " <br />
+                                                            <span className="opacity-75">
+                                                              used in{" "}
+                                                              {
+                                                                duplicateLinks[
+                                                                  `${roundIndex}-${qIndex}`
+                                                                ].company
+                                                              }
+                                                            </span>
+                                                          </p>
+                                                        </div>
+                                                      </div>
+
+                                                      <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        onClick={() =>
+                                                          handleAutoFill(
+                                                            roundIndex,
+                                                            qIndex
+                                                          )
+                                                        }
+                                                        className="ml-6 h-7 text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 dark:bg-yellow-800 dark:hover:bg-yellow-700 dark:text-yellow-100 border-yellow-200 dark:border-yellow-700"
+                                                      >
+                                                        <Wand2 className="h-3 w-3 mr-1.5" />
+                                                        Auto-fill Title & Desc
+                                                      </Button>
+                                                    </div>
+                                                  </motion.div>
+                                                )}
                                               </FormItem>
                                             )}
                                           />
@@ -694,7 +885,9 @@ export default function InterviewForm() {
                         name="status"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Status</FormLabel>
+                            <FormLabel>
+                              Status <span className="text-red-500">*</span>
+                            </FormLabel>
                             <Select
                               onValueChange={field.onChange}
                               defaultValue={field.value}
@@ -724,7 +917,9 @@ export default function InterviewForm() {
                         name="offer"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Offer Type</FormLabel>
+                            <FormLabel>
+                              Offer Type <span className="text-red-500">*</span>
+                            </FormLabel>
                             <Select
                               onValueChange={field.onChange}
                               defaultValue={field.value}
@@ -754,7 +949,10 @@ export default function InterviewForm() {
                       name="compensation"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Compensation (CTC in LPA)</FormLabel>
+                          <FormLabel>
+                            Compensation (CTC){" "}
+                            <span className="text-red-500">*</span>
+                          </FormLabel>
                           <FormControl>
                             <Input
                               placeholder="e.g. 12"
@@ -765,6 +963,10 @@ export default function InterviewForm() {
                               }
                             />
                           </FormControl>
+                          <FormDescription className="text-xs text-zinc-500">
+                            Enter numerical value (e.g. "12" for 12 LPA, or
+                            "1200000" for absolute value).
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}

@@ -13,7 +13,9 @@ import {
   X,
   LayoutDashboard,
   Home,
-  Image as ImageIcon, 
+  Building2, 
+  Link2, 
+  Image as ImageIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,6 +28,12 @@ const links = [
   { name: "Home", href: "/", icon: Home },
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "All Interviews", href: "/dashboard/allInterviews", icon: Users },
+  {
+    name: "Companies Archive",
+    href: "/dashboard/companies",
+    icon: Building2,
+  },
+  { name: "Resources", href: "/dashboard/resources", icon: Link2 }, // New
   { name: "My Interviews", href: "/dashboard/myInterviews", icon: User },
   { name: "Add Experience", href: "/dashboard/addInterview", icon: PlusCircle },
   {
@@ -38,7 +46,7 @@ const links = [
     name: "Generate Poster",
     href: "/dashboard/generatePoster",
     icon: ImageIcon,
-    roles: ["admin", "verifier"], 
+    roles: ["admin", "verifier"],
   },
 ];
 

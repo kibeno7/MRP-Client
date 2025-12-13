@@ -74,7 +74,7 @@ export default function GeneratePosterPage() {
             Poster Generator
           </h1>
           <p className="text-zinc-500 dark:text-zinc-400">
-            Manually create success posters for placement achievements.
+            Create success posters for placement achievements.
           </p>
         </div>
 
@@ -180,7 +180,7 @@ export default function GeneratePosterPage() {
                 <div>
                   <CardTitle>Live Preview</CardTitle>
                   <CardDescription>
-                    Real-time rendering of the final poster.
+                    Real-time view of the final poster.
                   </CardDescription>
                 </div>
                 <Button
