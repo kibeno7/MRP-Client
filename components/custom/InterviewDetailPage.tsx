@@ -21,10 +21,41 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { successnotify, errornotify } from "@/lib/notifications";
 
+interface Question {
+  title: string;
+  description: string;
+  link?: string;
+}
+
+interface Round {
+  _id: string;
+  name: string;
+  type: string;
+  date: number | string;
+  note?: string;
+  questions: Question[];
+}
+
+interface Interviewee {
+  name: string;
+  reg_no: string;
+}
+
+interface InterviewData {
+  _id: string;
+  company: string;
+  offer: "fte" | "intern";
+  compensation: number;
+  status: "placed" | "not-placed" | "ongoing";
+  interviewee: Interviewee;
+  createdAt: string;
+  rounds: Round[];
+}
+
 export default function InterviewDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [interview, setInterview] = useState<any>(null);
+  const [interview, setInterview] = useState<InterviewData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -185,7 +216,7 @@ export default function InterviewDetailPage() {
 
         {/* Rounds */}
         <div className="space-y-4">
-          {interview.rounds?.map((round: any, index: number) => (
+          {interview.rounds?.map((round: Round, index: number) => (
             <motion.div
               key={round._id || index}
               initial={{ opacity: 0, y: 10 }}
@@ -216,12 +247,12 @@ export default function InterviewDetailPage() {
                 <CardContent className="p-6 space-y-6">
                   {round.note && (
                     <div className="text-sm text-zinc-600 dark:text-zinc-400 italic bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg border border-zinc-100 dark:border-zinc-800">
-                      "{round.note}"
+                      &quot;{round.note}&quot;
                     </div>
                   )}
 
                   <div className="space-y-4">
-                    {round.questions?.map((q: any, qi: number) => (
+                    {round.questions?.map((q: Question, qi: number) => (
                       <div key={qi} className="group">
                         <div className="flex items-start gap-3">
                           <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-zinc-300 dark:bg-zinc-700 shrink-0" />

@@ -115,7 +115,6 @@ export default function InterviewForm() {
   const [submitLoadingDraft, setSubmitLoadingDraft] = useState(false);
   const [submitLoadingSubmit, setSubmitLoadingSubmit] = useState(false);
 
-  // State to track duplicate links found: { "roundIndex-qIndex": { title, description, company } }
   const [duplicateLinks, setDuplicateLinks] = useState<
     Record<string, { title: string; description: string; company: string }>
   >({});
@@ -778,13 +777,13 @@ export default function InterviewForm() {
                                                             Found
                                                           </p>
                                                           <p className="text-yellow-600 dark:text-yellow-400 mt-1">
-                                                            "
+                                                            &quot;
                                                             {
                                                               duplicateLinks[
                                                                 `${roundIndex}-${qIndex}`
                                                               ].title
                                                             }
-                                                            " <br />
+                                                            &quot; <br />
                                                             <span className="opacity-75">
                                                               used in{" "}
                                                               {
@@ -964,8 +963,8 @@ export default function InterviewForm() {
                             />
                           </FormControl>
                           <FormDescription className="text-xs text-zinc-500">
-                            Enter numerical value (e.g. "12" for 12 LPA, or
-                            "1200000" for absolute value).
+                            Enter numerical value (e.g. &quot;12&quot; for 12
+                            LPA, or &quot;1200000&quot; for absolute value).
                           </FormDescription>
                           <FormMessage />
                         </FormItem>

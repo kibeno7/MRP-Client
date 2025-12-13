@@ -71,14 +71,16 @@ const AllInterviews = () => {
     );
   };
 
+  // Sync state with URL params
   useEffect(() => {
     const search = searchParams.get("search");
-    if (search !== null && search !== filter) {
+    if (search !== null) {
       setFilter(search);
       setDebouncedFilter(search);
     }
   }, [searchParams]);
 
+  // Debounce logic
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedFilter(filter);
@@ -86,8 +88,9 @@ const AllInterviews = () => {
     }, 500);
 
     return () => clearTimeout(handler);
-  }, [filter]);
+  }, [filter, debouncedFilter]);
 
+  // Fetch Data
   useEffect(() => {
     let isActive = true;
 
@@ -137,10 +140,10 @@ const AllInterviews = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-              Interviews Archive
+              Interview Archive
             </h1>
             <p className="text-zinc-500 dark:text-zinc-400">
-              Browse experiences shared by your seniors & batchmates.
+              Browse experiences shared by your seniors.
             </p>
           </div>
         </div>
@@ -292,7 +295,8 @@ const AllInterviews = () => {
                         colSpan={4}
                         className="px-6 py-12 text-center text-zinc-500"
                       >
-                        No interviews found matching "{debouncedFilter}"
+                        No interviews found matching &quot;{debouncedFilter}
+                        &quot;
                       </td>
                     </tr>
                   )}

@@ -3,12 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Search,
-  BookOpen,
-  Library,
-  ArrowUpRight,
-} from "lucide-react";
+import { Search, BookOpen, Library, ArrowUpRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,6 +26,15 @@ interface ResourceItem {
   candidate: string;
 }
 
+interface BackendResource {
+  _id: string;
+  title?: string;
+  link: string;
+  company?: string;
+  round?: { name: string };
+  interviewee?: { name: string };
+}
+
 export default function ResourcesPage() {
   const [resources, setResources] = useState<ResourceItem[]>([]);
   const [filter, setFilter] = useState("");
@@ -50,7 +54,7 @@ export default function ResourcesPage() {
         if (response.data.status === "success") {
           const backendData = response.data.data.data;
           const mappedResources: ResourceItem[] = backendData.map(
-            (item: any) => ({
+            (item: BackendResource) => ({
               id: item._id,
               title: item.title || "Untitled Question",
               link: item.link,
@@ -241,8 +245,8 @@ export default function ResourcesPage() {
                               No resources found
                             </p>
                             <p className="text-sm text-zinc-500 max-w-xs mt-1">
-                              We couldn't find any resources matching "{filter}
-                              ".
+                              We couldn&apos;t find any resources matching
+                              &quot;{filter}&quot;.
                             </p>
                           </div>
                         </TableCell>

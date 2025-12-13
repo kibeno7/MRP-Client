@@ -32,7 +32,7 @@ export default function CompanyDirectory() {
           setCompanies(response.data.data.data);
         }
       } catch (error) {
-        console.error("Failed to fetch companies");
+        console.error("Failed to fetch companies", error);
       } finally {
         setIsLoading(false);
       }
@@ -152,8 +152,8 @@ export default function CompanyDirectory() {
               No companies found
             </h3>
             <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mt-1">
-              We couldn't find any companies matching "{filter}". Try searching
-              for a different name.
+              We couldn&apos;t find any companies matching &quot;{filter}&quot;.
+              Try searching for a different name.
             </p>
           </motion.div>
         )}
