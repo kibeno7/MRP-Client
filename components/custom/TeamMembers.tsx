@@ -48,6 +48,14 @@ const teamMembers = [
     linkedin: "https://www.linkedin.com/in/apurba007/",
     imgSource: "/images/team/apurba.jpg",
   },
+  {
+    id: 6,
+    name: "Aditya Aryan",
+    role: "Full Stack Developer",
+    github: "https://github.com/AdityaAryan-1408",
+    linkedin: "https://www.linkedin.com/in/aryanaditya1408/",
+    imgSource: "/images/team/aditya-aryan.jpeg",
+  },
 ];
 
 const containerVariants = {
